@@ -15,7 +15,7 @@ This file provides essential information for AI coding agents working on this pr
 - **Authentication**: Clerk (with Organizations/Billing support)
 - **Error Tracking**: Sentry
 - **Charts**: Recharts
-- **Containerization**: Docker (Node.js & Bun Dockerfiles)
+- **Containerization**: Docker (Bun production + dev Dockerfiles)
 - **Package Manager**: Bun (preferred) or npm
 
 The project follows a feature-based folder structure designed for scalability in SaaS applications, internal tools, and admin panels.
@@ -161,8 +161,8 @@ The project follows a feature-based folder structure designed for scalability in
     ├── cleanup.js         # Feature removal, run via `bun run cleanup` (templates in cleanup-templates/, typechecked)
     └── cleanup-templates/ # Replacement files cleanup.js copies into the repo
 
-Dockerfile                 # Node.js production Dockerfile
 Dockerfile.bun             # Bun production Dockerfile
+Dockerfile.dev             # Bun dev Dockerfile (hot reload, no build)
 .dockerignore              # Docker build exclusions
 ```
 
@@ -566,12 +566,8 @@ Ensure these are set in your deployment platform:
 
 ### Docker
 
-Production-ready Dockerfiles are included:
-
-- `Dockerfile` — Node.js-based
-- `Dockerfile.bun` — Bun-based
-
-Both use `output: 'standalone'` in `next.config.ts`. Pass `NEXT_PUBLIC_*` vars as `--build-arg` at build time, and runtime secrets via `-e` at run time.
+- `Dockerfile.bun` — production build, uses `output: 'standalone'` in `next.config.ts`. Pass `NEXT_PUBLIC_*` vars as `--build-arg` at build time, and runtime secrets via `-e` at run time.
+- `Dockerfile.dev` + `compose.dev.yml` — local dev with hot reload, no build step.
 
 ### Build Considerations
 

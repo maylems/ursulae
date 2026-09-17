@@ -23,17 +23,13 @@ Sentry source maps are uploaded automatically in CI.
 
 ## Docker
 
-Two production-ready Dockerfiles are included: `Dockerfile` (Node.js) and `Dockerfile.bun` (Bun). Pass `NEXT_PUBLIC_*` variables as `--build-arg` at build time and runtime secrets via `-e` at run time.
+### Production
+
+`Dockerfile.bun` is the production build. Pass `NEXT_PUBLIC_*` variables as `--build-arg` at build time and runtime secrets via `-e` at run time.
 
 Build the image:
 
 ```bash
-# Node.js
-docker build \
-  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
-  -t shadcn-dashboard .
-
-# OR Bun
 docker build -f Dockerfile.bun \
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
   -t shadcn-dashboard .
@@ -48,4 +44,12 @@ docker run -d -p 3000:3000 \
   --restart unless-stopped \
   --name shadcn-dashboard \
   shadcn-dashboard
+```
+
+### Local dev
+
+`Dockerfile.dev` + `compose.dev.yml` run the Next.js dev server with hot reload (no build step, no database — this frontend talks to a separate backend/DB repo):
+
+```bash
+docker compose -f compose.dev.yml up --build
 ```

@@ -1,0 +1,17 @@
+# Local dev stack: Next.js dev server with hot reload.
+# Frontend only — no database/backend here, that lives in its own repo.
+# Usage: docker compose -f compose.dev.yml up
+
+services:
+  web:
+    build: 
+      context: .    
+      dockerfile: Dockerfile.dev
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env.local
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
