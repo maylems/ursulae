@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,28 +24,34 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Icons } from '@/components/icons';
-import type { ApiKeyProvider, ConnectedApiKey } from '../constants/mock-data';
+import { connectApiKey } from '../api/service';
+import { apiKeyKeys } from '../api/queries';
+import type { ApiKeyProvider } from '../api/types';
 
-export function ConnectApiKeyDialog({ onConnect }: { onConnect: (key: ConnectedApiKey) => void }) {
+export function ConnectApiKeyDialog() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [provider, setProvider] = useState<ApiKeyProvider>('openai');
   const [label, setLabel] = useState('');
   const [key, setKey] = useState('');
 
-  const handleConnect = () => {
-    if (!label || key.length < 4) return;
-    onConnect({
-      id: crypto.randomUUID(),
-      provider,
-      label,
-      lastFour: key.slice(-4),
-      status: 'active',
-      lastSynced: 'just now'
-    });
-    setLabel('');
-    setKey('');
-    setOpen(false);
-  };
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const token = await getToken();
+      return connectApiKey(token, { provider, label, key });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: apiKeyKeys.all });
+      toast.success('API key connected');
+      setLabel('');
+      setKey('');
+      setOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to connect key');
+    }
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -68,8 +77,6 @@ export function ConnectApiKeyDialog({ onConnect }: { onConnect: (key: ConnectedA
               <SelectContent>
                 <SelectItem value='openai'>OpenAI</SelectItem>
                 <SelectItem value='anthropic'>Anthropic</SelectItem>
-                <SelectItem value='google'>Google</SelectItem>
-                <SelectItem value='mistral'>Mistral</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -97,8 +104,11 @@ export function ConnectApiKeyDialog({ onConnect }: { onConnect: (key: ConnectedA
           <Button variant='outline' onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleConnect} disabled={!label || key.length < 4}>
-            Connect
+          <Button
+            onClick={() => mutation.mutate()}
+            disabled={!label || key.length < 4 || mutation.isPending}
+          >
+            {mutation.isPending ? 'Connecting...' : 'Connect'}
           </Button>
         </DialogFooter>
       </DialogContent>

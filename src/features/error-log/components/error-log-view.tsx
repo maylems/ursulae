@@ -1,3 +1,7 @@
+'use client';
+
+import { useAuth } from '@clerk/nextjs';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -9,9 +13,23 @@ import {
   TableCell
 } from '@/components/ui/table';
 import { Icons } from '@/components/icons';
-import { actionStyles, errorLog, errorStats } from '../constants/mock-data';
+import { errorLogQueryOptions } from '../api/queries';
+import { actionStyles } from '../constants/styles';
+
+function formatTimestamp(iso: string) {
+  return new Date(iso).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+}
 
 export function ErrorLogView() {
+  const { getToken } = useAuth();
+  const { data } = useSuspenseQuery(errorLogQueryOptions(getToken));
+
   return (
     <div className='flex flex-1 flex-col gap-4'>
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
@@ -20,8 +38,8 @@ export function ErrorLogView() {
             <div className='bg-muted flex size-9 items-center justify-center rounded-md'>
               <Icons.warning className='text-muted-foreground size-4' />
             </div>
-            <div className='text-2xl font-semibold tabular-nums'>{errorStats.totalErrors24h}</div>
-            <p className='text-muted-foreground text-sm'>Errors (24h)</p>
+            <div className='text-2xl font-semibold tabular-nums'>{data.stats.totalErrors}</div>
+            <p className='text-muted-foreground text-sm'>Errors (7d)</p>
           </CardContent>
         </Card>
         <Card>
@@ -30,7 +48,7 @@ export function ErrorLogView() {
               <Icons.activity className='text-muted-foreground size-4' />
             </div>
             <div className='text-2xl font-semibold tabular-nums'>
-              {errorStats.errorRatePercent}%
+              {data.stats.errorRatePercent.toFixed(1)}%
             </div>
             <p className='text-muted-foreground text-sm'>Error Rate</p>
           </CardContent>
@@ -40,7 +58,7 @@ export function ErrorLogView() {
             <div className='bg-muted flex size-9 items-center justify-center rounded-md'>
               <Icons.lock className='text-muted-foreground size-4' />
             </div>
-            <div className='text-2xl font-semibold tabular-nums'>{errorStats.blockedRequests}</div>
+            <div className='text-2xl font-semibold tabular-nums'>{data.stats.blockedRequests}</div>
             <p className='text-muted-foreground text-sm'>Blocked by Policy Engine</p>
           </CardContent>
         </Card>
@@ -49,7 +67,9 @@ export function ErrorLogView() {
             <div className='bg-muted flex size-9 items-center justify-center rounded-md'>
               <Icons.code className='text-muted-foreground size-4' />
             </div>
-            <div className='text-2xl font-semibold tabular-nums'>{errorStats.mostCommon}</div>
+            <div className='text-2xl font-semibold tabular-nums'>
+              {data.stats.mostCommon ?? '-'}
+            </div>
             <p className='text-muted-foreground text-sm'>Most Common Error</p>
           </CardContent>
         </Card>
@@ -64,42 +84,50 @@ export function ErrorLogView() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='overflow-x-auto'>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead>Model</TableHead>
-                  <TableHead>Feature</TableHead>
-                  <TableHead>Error</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {errorLog.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell className='text-muted-foreground whitespace-nowrap'>
-                      {entry.timestamp}
-                    </TableCell>
-                    <TableCell>
-                      <div className='font-medium'>{entry.model}</div>
-                      <div className='text-muted-foreground text-xs'>{entry.provider}</div>
-                    </TableCell>
-                    <TableCell className='text-muted-foreground'>{entry.feature}</TableCell>
-                    <TableCell className='max-w-[360px]'>
-                      <div className='font-medium'>{entry.errorType}</div>
-                      <div className='text-muted-foreground text-xs'>{entry.message}</div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant='outline' className={actionStyles[entry.action]}>
-                        {entry.action}
-                      </Badge>
-                    </TableCell>
+          {data.events.length === 0 ? (
+            <p className='text-muted-foreground py-10 text-center text-sm'>
+              No errors in the selected period.
+            </p>
+          ) : (
+            <div className='overflow-x-auto'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead>Model</TableHead>
+                    <TableHead>Feature</TableHead>
+                    <TableHead>Error</TableHead>
+                    <TableHead>Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {data.events.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell className='text-muted-foreground whitespace-nowrap'>
+                        {formatTimestamp(entry.occurredAt)}
+                      </TableCell>
+                      <TableCell>
+                        <div className='font-medium'>{entry.model}</div>
+                        <div className='text-muted-foreground text-xs'>{entry.provider}</div>
+                      </TableCell>
+                      <TableCell className='text-muted-foreground'>
+                        {entry.feature ?? '-'}
+                      </TableCell>
+                      <TableCell className='max-w-[360px]'>
+                        <div className='font-medium'>{entry.errorType ?? 'unknown'}</div>
+                        <div className='text-muted-foreground text-xs'>{entry.message ?? '-'}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant='outline' className={actionStyles[entry.policyAction]}>
+                          {entry.policyAction}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

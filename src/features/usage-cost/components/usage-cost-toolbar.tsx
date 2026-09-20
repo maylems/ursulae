@@ -37,7 +37,6 @@ export function UsageCostToolbar() {
           <SelectItem value='all'>All Models</SelectItem>
           <SelectItem value='openai'>OpenAI</SelectItem>
           <SelectItem value='anthropic'>Anthropic</SelectItem>
-          <SelectItem value='google'>Google</SelectItem>
         </SelectContent>
       </Select>
       <Button variant='outline'>

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,12 +12,26 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Icons } from '@/components/icons';
-import { connectedApiKeys as initialKeys, providerLabelMap } from '../constants/mock-data';
-import type { ConnectedApiKey } from '../constants/mock-data';
+import { apiKeyKeys, apiKeysQueryOptions } from '../api/queries';
+import { revokeApiKey } from '../api/service';
+import { providerLabelMap } from '../api/types';
 import { ConnectApiKeyDialog } from './connect-api-key-dialog';
 
 export function SettingsView() {
-  const [apiKeys, setApiKeys] = useState<ConnectedApiKey[]>(initialKeys);
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
+  const { data: apiKeys } = useSuspenseQuery(apiKeysQueryOptions(getToken));
+
+  const revokeMutation = useMutation({
+    mutationFn: async (id: string) => revokeApiKey(await getToken(), id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: apiKeyKeys.all });
+      toast.success('API key revoked');
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to revoke key');
+    }
+  });
 
   return (
     <Tabs defaultValue='api-keys'>
@@ -35,7 +51,7 @@ export function SettingsView() {
                 Read-only keys used to import usage and billing history
               </CardDescription>
             </div>
-            <ConnectApiKeyDialog onConnect={(key) => setApiKeys((prev) => [key, ...prev])} />
+            <ConnectApiKeyDialog />
           </CardHeader>
           <CardContent className='flex flex-col gap-3'>
             {apiKeys.map((key) => (
@@ -48,20 +64,32 @@ export function SettingsView() {
                     <div className='font-medium'>{key.label}</div>
                     <div className='text-muted-foreground text-xs'>
                       {providerLabelMap[key.provider]} · sk-••••{key.lastFour} · synced{' '}
-                      {key.lastSynced}
+                      {key.lastSyncedAt ? new Date(key.lastSyncedAt).toLocaleString() : 'never'}
                     </div>
                   </div>
                 </div>
-                <Badge
-                  variant='outline'
-                  className={
-                    key.status === 'active'
-                      ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/20'
-                      : 'bg-destructive/15 text-destructive border-destructive/20'
-                  }
-                >
-                  {key.status}
-                </Badge>
+                <div className='flex items-center gap-2'>
+                  <Badge
+                    variant='outline'
+                    className={
+                      key.status === 'active'
+                        ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/20'
+                        : 'bg-destructive/15 text-destructive border-destructive/20'
+                    }
+                  >
+                    {key.status}
+                  </Badge>
+                  {key.status === 'active' && (
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => revokeMutation.mutate(key.id)}
+                      disabled={revokeMutation.isPending}
+                    >
+                      Revoke
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
             {apiKeys.length === 0 && (
@@ -124,7 +152,7 @@ export function SettingsView() {
                 className='max-w-md'
               />
             </div>
-            <div className='flex items-center justify-between max-w-md'>
+            <div className='flex max-w-md items-center justify-between'>
               <div>
                 <Label htmlFor='anomaly-alerts'>Anomaly detection alerts</Label>
                 <p className='text-muted-foreground text-xs'>
@@ -133,7 +161,7 @@ export function SettingsView() {
               </div>
               <Switch id='anomaly-alerts' defaultChecked />
             </div>
-            <div className='flex items-center justify-between max-w-md'>
+            <div className='flex max-w-md items-center justify-between'>
               <div>
                 <Label htmlFor='weekly-summary'>Weekly summary email</Label>
                 <p className='text-muted-foreground text-xs'>

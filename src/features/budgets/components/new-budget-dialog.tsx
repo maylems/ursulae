@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,30 +24,33 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Icons } from '@/components/icons';
-import type { Budget, BudgetPeriod, BudgetScope } from '../constants/mock-data';
+import { createBudget } from '../api/service';
+import { budgetKeys } from '../api/queries';
+import type { BudgetPeriod, BudgetScope } from '../api/types';
 
-export function NewBudgetDialog({ onCreate }: { onCreate: (budget: Budget) => void }) {
+export function NewBudgetDialog() {
+  const { getToken } = useAuth();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [label, setLabel] = useState('');
   const [scope, setScope] = useState<BudgetScope>('organization');
   const [period, setPeriod] = useState<BudgetPeriod>('monthly');
   const [limit, setLimit] = useState('');
 
-  const handleCreate = () => {
-    if (!label || !limit) return;
-    onCreate({
-      id: crypto.randomUUID(),
-      label,
-      scope,
-      period,
-      limit: Number(limit),
-      spent: 0,
-      alertThresholdPercent: 80
-    });
-    setLabel('');
-    setLimit('');
-    setOpen(false);
-  };
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const token = await getToken();
+      return createBudget(token, { scope, period, amountUsd: Number(limit) });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: budgetKeys.all });
+      toast.success('Budget created');
+      setLimit('');
+      setOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to create budget');
+    }
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -60,15 +66,6 @@ export function NewBudgetDialog({ onCreate }: { onCreate: (budget: Budget) => vo
           </DialogDescription>
         </DialogHeader>
         <div className='flex flex-col gap-4'>
-          <div className='flex flex-col gap-1.5'>
-            <Label htmlFor='budget-label'>Label</Label>
-            <Input
-              id='budget-label'
-              placeholder='e.g. research-agent key'
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-            />
-          </div>
           <div className='grid grid-cols-2 gap-4'>
             <div className='flex flex-col gap-1.5'>
               <Label>Scope</Label>
@@ -110,8 +107,8 @@ export function NewBudgetDialog({ onCreate }: { onCreate: (budget: Budget) => vo
           <Button variant='outline' onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={!label || !limit}>
-            Create Budget
+          <Button onClick={() => mutation.mutate()} disabled={!limit || mutation.isPending}>
+            {mutation.isPending ? 'Creating...' : 'Create Budget'}
           </Button>
         </DialogFooter>
       </DialogContent>

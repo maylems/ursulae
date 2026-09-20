@@ -64,7 +64,7 @@ export const navGroups: NavGroup[] = [
     ]
   },
   {
-    label: '',
+    label: 'Configuration',
     items: [
       {
         title: 'Settings',
