@@ -71,8 +71,10 @@ function EventsTable({ events }: { events: UsageEvent[] }) {
           <TableRow>
             <TableHead>Timestamp</TableHead>
             <TableHead>Model</TableHead>
+            <TableHead>Feature</TableHead>
             <TableHead>Tokens</TableHead>
             <TableHead>Cost</TableHead>
+            <TableHead>Latency</TableHead>
             <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -96,6 +98,7 @@ function EventsTable({ events }: { events: UsageEvent[] }) {
                   </div>
                 </div>
               </TableCell>
+              <TableCell className='text-muted-foreground'>{event.feature ?? '-'}</TableCell>
               <TableCell>
                 <div>{event.promptTokens + event.completionTokens}</div>
                 <div className='text-muted-foreground text-xs'>
@@ -103,6 +106,9 @@ function EventsTable({ events }: { events: UsageEvent[] }) {
                 </div>
               </TableCell>
               <TableCell>${Number(event.costUsd).toFixed(4)}</TableCell>
+              <TableCell className='text-muted-foreground'>
+                {event.latencyMs ? `${event.latencyMs}ms` : '-'}
+              </TableCell>
               <TableCell>
                 <Badge variant='outline' className={statusStyles[event.status]}>
                   {event.status}

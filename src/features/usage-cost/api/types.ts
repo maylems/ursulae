@@ -45,9 +45,11 @@ export type UsageEvent = {
   occurredAt: string;
   provider: Provider;
   model: string;
+  feature: string | null;
   promptTokens: number;
   completionTokens: number;
   costUsd: string;
+  latencyMs: number | null;
   status: UsageEventStatus;
 };
 

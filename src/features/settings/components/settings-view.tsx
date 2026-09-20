@@ -15,6 +15,7 @@ import { Icons } from '@/components/icons';
 import { apiKeyKeys, apiKeysQueryOptions } from '../api/queries';
 import { revokeApiKey } from '../api/service';
 import { providerLabelMap } from '../api/types';
+import { ProxyKeysTab } from '@/features/proxy/components/proxy-keys-tab';
 import { ConnectApiKeyDialog } from './connect-api-key-dialog';
 
 export function SettingsView() {
@@ -37,6 +38,7 @@ export function SettingsView() {
     <Tabs defaultValue='api-keys'>
       <TabsList>
         <TabsTrigger value='api-keys'>API Keys</TabsTrigger>
+        <TabsTrigger value='proxy'>Proxy</TabsTrigger>
         <TabsTrigger value='organization'>Organization</TabsTrigger>
         <TabsTrigger value='notifications'>Notifications</TabsTrigger>
         <TabsTrigger value='billing'>Billing</TabsTrigger>
@@ -99,6 +101,10 @@ export function SettingsView() {
             )}
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value='proxy' className='mt-4'>
+        <ProxyKeysTab />
       </TabsContent>
 
       <TabsContent value='organization' className='mt-4'>

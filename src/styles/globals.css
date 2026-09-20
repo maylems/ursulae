@@ -11,6 +11,14 @@
 
 @import './theme.css';
 
+/* Keep the sidebar the same color as the page in every theme and mode.
+   Themes define --sidebar separately (slightly off from --background), so
+   this needs to outrank their [data-theme] / [data-theme].dark selectors. */
+html[data-theme],
+html[data-theme].dark {
+  --sidebar: var(--background);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
