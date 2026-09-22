@@ -1,11 +1,11 @@
 'use client';
 
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/use-auth';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Icons } from '@/components/icons';
 import { usageStatsQueryOptions } from '../api/queries';
-import { formatRatio, formatTokens } from '../utils/format';
+import { formatRatio, formatSmallUsd, formatTokens } from '../utils/format';
 
 export function UsageStatCards() {
   const { getToken } = useAuth();
@@ -15,7 +15,7 @@ export function UsageStatCards() {
     {
       key: 'avg-cost-request',
       icon: 'calculator' as const,
-      value: `$${data.avgCostPerRequest.toFixed(4)}`,
+      value: formatSmallUsd(data.avgCostPerRequest),
       label: 'Avg Cost / Request'
     },
     {

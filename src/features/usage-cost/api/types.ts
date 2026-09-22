@@ -1,12 +1,15 @@
 import type { Provider } from '../constants/mock-data';
 
-// Matches ai-financial-control-backend's GET /usage/summary response.
-// Empty until a connected API key has synced usage (ingestion job is still a stub).
+// Matches GET /usage/summary. totalCost is the reconciled provider total:
+// proxiedCost (through Fivv, attributable) + externalCost (reported by the
+// provider but not seen by the proxy).
 export type UsageSummary = {
   since: string;
   byProvider: {
     provider: Provider;
-    totalCost: string;
+    totalCost: number;
+    proxiedCost: number;
+    externalCost: number;
     totalTokens: number;
   }[];
 };
@@ -43,6 +46,8 @@ export type UsageEventStatus = 'success' | 'error' | 'throttled';
 export type UsageEvent = {
   id: string;
   occurredAt: string;
+  // 'external' rows are provider-reported usage that did not go through the proxy.
+  source: 'proxy' | 'external';
   provider: Provider;
   model: string;
   feature: string | null;

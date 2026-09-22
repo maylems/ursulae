@@ -6,7 +6,7 @@ export const budgetKeys = {
   list: () => [...budgetKeys.all, 'list'] as const
 };
 
-// `getToken` matches both Clerk's server `auth()` and client `useAuth()` —
+// `getToken` matches both the server `getServerAuth()` and client `useAuth()` —
 // same factory works for server prefetch and client useSuspenseQuery.
 export function budgetsQueryOptions(getToken: () => Promise<string | null>) {
   return queryOptions({

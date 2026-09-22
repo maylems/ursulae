@@ -1,8 +1,10 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const PUBLIC_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const BACKEND_URL =
+  typeof window === 'undefined' ? (process.env.BACKEND_INTERNAL_URL ?? PUBLIC_URL) : PUBLIC_URL;
 
 // Fetch wrapper for the ai-financial-control-backend repo's API (separate
 // repo, separate origin) — distinct from `api-client.ts`, which targets this
-// app's own `/api` routes. Every route there requires a Clerk bearer token.
+// app's own `/api` routes. Every route there requires a Better Auth session token.
 export async function backendClient<T>(
   endpoint: string,
   token: string | null,

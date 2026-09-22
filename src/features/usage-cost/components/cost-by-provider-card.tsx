@@ -1,7 +1,7 @@
 'use client';
 
 import { Bar, BarChart, XAxis, YAxis } from 'recharts';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/use-auth';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/chart';
 import { usageSummaryQueryOptions } from '../api/queries';
 import { providerColors, providerLabels } from '../constants/mock-data';
+import { formatSmallUsd } from '../utils/format';
 
 export function CostByProviderCard() {
   const { getToken } = useAuth();
@@ -38,8 +39,6 @@ export function CostByProviderCard() {
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
-          // Empty until a connected API key has synced usage — the backend's
-          // ingestion job (jobs/ingest-usage.ts) is still a stub.
           <div className='text-muted-foreground flex h-[280px] flex-col items-center justify-center gap-1 text-sm'>
             <p>No usage synced yet.</p>
             <p>Connect an API key in Settings to start tracking costs.</p>
@@ -62,13 +61,26 @@ export function CostByProviderCard() {
                 content={
                   <ChartTooltipContent
                     hideLabel
-                    formatter={(value) => `$${Number(value).toFixed(4)}`}
+                    formatter={(value) => formatSmallUsd(Number(value))}
                   />
                 }
               />
               <Bar dataKey='cost' radius={5} />
             </BarChart>
           </ChartContainer>
+        )}
+        {data.byProvider.length > 0 && (
+          <div className='text-muted-foreground mt-3 flex flex-col gap-1 text-xs'>
+            {data.byProvider.map((row) => (
+              <div key={row.provider} className='flex justify-between'>
+                <span>{providerLabels[row.provider]}</span>
+                <span>
+                  {formatSmallUsd(row.proxiedCost)} via Fivv · {formatSmallUsd(row.externalCost)}{' '}
+                  outside Fivv
+                </span>
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>

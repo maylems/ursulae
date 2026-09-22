@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
-import { auth } from '@clerk/nextjs/server';
+import { getServerAuth } from '@/lib/auth-server';
 import PageContainer from '@/components/layout/page-container';
 import { getQueryClient } from '@/lib/query-client';
 import { proxyKeysQueryOptions } from '@/features/proxy/api/queries';
@@ -9,7 +9,7 @@ import { SettingsView } from '@/features/settings/components/settings-view';
 import { SettingsSkeleton } from '@/features/settings/components/settings-skeleton';
 
 export default async function SettingsPage() {
-  const { getToken } = await auth();
+  const { getToken } = await getServerAuth();
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(apiKeysQueryOptions(getToken));
   void queryClient.prefetchQuery(proxyKeysQueryOptions(getToken));

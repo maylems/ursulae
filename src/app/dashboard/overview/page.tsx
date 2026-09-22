@@ -1,5 +1,5 @@
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
-import { auth } from '@clerk/nextjs/server';
+import { getServerAuth } from '@/lib/auth-server';
 import PageContainer from '@/components/layout/page-container';
 import { getQueryClient } from '@/lib/query-client';
 import {
@@ -12,7 +12,7 @@ import { UsageCostToolbar } from '@/features/usage-cost/components/usage-cost-to
 import { UsageCostView } from '@/features/usage-cost/components/usage-cost-view';
 
 export default async function OverviewPage() {
-  const { getToken } = await auth();
+  const { getToken } = await getServerAuth();
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(usageSummaryQueryOptions(getToken));
   void queryClient.prefetchQuery(usageStatsQueryOptions(getToken));

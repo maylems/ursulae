@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/use-auth';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -98,7 +98,9 @@ function EventsTable({ events }: { events: UsageEvent[] }) {
                   </div>
                 </div>
               </TableCell>
-              <TableCell className='text-muted-foreground'>{event.feature ?? '-'}</TableCell>
+              <TableCell className='text-muted-foreground'>
+                {event.source === 'external' ? 'Outside Fivv' : (event.feature ?? '-')}
+              </TableCell>
               <TableCell>
                 <div>{event.promptTokens + event.completionTokens}</div>
                 <div className='text-muted-foreground text-xs'>
@@ -128,16 +130,20 @@ function ModelPerformanceTable({ events }: { events: UsageEvent[] }) {
     { provider: UsageEvent['provider']; events: number; cost: number; tokens: number }
   >();
 
+  // Failed calls carry no usage; external rows are provider aggregates, so they
+  // add tokens and cost but are not counted as requests.
   for (const event of events) {
+    if (event.status !== 'success') continue;
+    const requests = event.source === 'proxy' ? 1 : 0;
     const existing = byModel.get(event.model);
     const tokens = event.promptTokens + event.completionTokens;
     const cost = Number(event.costUsd);
     if (existing) {
-      existing.events += 1;
+      existing.events += requests;
       existing.cost += cost;
       existing.tokens += tokens;
     } else {
-      byModel.set(event.model, { provider: event.provider, events: 1, cost, tokens });
+      byModel.set(event.model, { provider: event.provider, events: requests, cost, tokens });
     }
   }
 
