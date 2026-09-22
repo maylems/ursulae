@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/auth-client';
+import { SocialSignIn } from './social-sign-in';
 
 export function CredentialsForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   const router = useRouter();
@@ -43,7 +44,7 @@ export function CredentialsForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
           {isSignUp ? 'Create your account' : 'Welcome back'}
         </h1>
         <p className='text-sm text-muted-foreground'>
-          {isSignUp ? 'Start controlling your AI spend today.' : 'Sign in to AI Financial Control.'}
+          {isSignUp ? 'Start controlling your AI spend today.' : 'Sign in to Ursulae.'}
         </p>
       </div>
       <form onSubmit={onSubmit} className='flex flex-col gap-4'>
@@ -97,6 +98,7 @@ export function CredentialsForm({ mode }: { mode: 'sign-in' | 'sign-up' }) {
           {isSignUp ? 'Create account' : 'Sign in'}
         </Button>
       </form>
+      <SocialSignIn />
       <p className='text-center text-sm text-muted-foreground'>
         {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
         <Link
