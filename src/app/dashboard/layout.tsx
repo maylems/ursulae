@@ -4,9 +4,11 @@ import Header from '@/components/layout/header';
 import { InfoSidebar } from '@/components/layout/info-sidebar';
 import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { auth } from '@clerk/nextjs/server';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { SessionGuard } from '@/components/session-guard';
+import { getServerAuth } from '@/lib/auth-server';
 
 export const metadata: Metadata = {
   title: 'Next Shadcn Dashboard Starter',
@@ -19,12 +21,14 @@ export const metadata: Metadata = {
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // Gate the whole /dashboard segment: redirect to sign-in when signed out.
-  await auth.protect();
+  const { isSignedIn } = await getServerAuth();
+  if (!isSignedIn) redirect('/auth/sign-in');
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
   return (
     <KBar>
+      <SessionGuard />
       <SidebarProvider defaultOpen={defaultOpen}>
         <a
           href='#main-content'

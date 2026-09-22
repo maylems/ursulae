@@ -3,7 +3,7 @@
 /**
  * Fully client-side hook for filtering navigation items based on RBAC
  *
- * This hook uses Clerk's client-side hooks to check permissions, roles, and organization
+ * This hook uses Better Auth's client-side hooks to check roles and organization
  * without any server calls. This is perfect for navigation visibility (UX only).
  *
  * Performance:
@@ -17,7 +17,7 @@
  */
 
 import { useMemo } from 'react';
-import { useOrganization, useUser } from '@clerk/nextjs';
+import { authClient } from '@/lib/auth-client';
 import type { NavItem, NavGroup } from '@/types';
 
 /**
@@ -27,13 +27,14 @@ import type { NavItem, NavGroup } from '@/types';
  * @returns Filtered items
  */
 export function useFilteredNavItems(items: NavItem[]) {
-  const { organization, membership } = useOrganization();
-  const { user } = useUser();
+  const { data: organization } = authClient.useActiveOrganization();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
 
   // Memoize context and permissions
   const accessContext = useMemo(() => {
-    const permissions = membership?.permissions || [];
-    const role = membership?.role;
+    const permissions: string[] = [];
+    const role = organization?.members.find((m) => m.userId === user?.id)?.role;
 
     return {
       organization: organization ?? undefined,
@@ -42,8 +43,8 @@ export function useFilteredNavItems(items: NavItem[]) {
       role: role ?? undefined,
       hasOrg: !!organization
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- using stable primitives to avoid infinite re-renders from unstable Clerk object refs
-  }, [organization?.id, user?.id, membership?.permissions, membership?.role]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- using stable primitives to avoid infinite re-renders from unstable object refs
+  }, [organization?.id, user?.id, organization?.members]);
 
   // Filter items synchronously (all client-side)
   const filteredItems = useMemo(() => {
@@ -79,7 +80,7 @@ export function useFilteredNavItems(items: NavItem[]) {
           }
         }
 
-        // Note: Plans and features require server-side checks with Clerk's has() function
+        // Note: Plans and features require server-side checks server-side
         // For navigation visibility, you can either:
         // 1. Store plan/feature info in organization metadata (client-accessible)
         // 2. Use server actions (current approach)

@@ -2,18 +2,17 @@
 
 import PageContainer from '@/components/layout/page-container';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useOrganization } from '@clerk/nextjs';
-import { PricingTable } from '@clerk/nextjs';
+import { authClient } from '@/lib/auth-client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Icons } from '@/components/icons';
 import { billingInfoContent } from '@/config/infoconfig';
 
 export default function BillingPage() {
-  const { organization, isLoaded } = useOrganization();
+  const { data: organization, isPending } = authClient.useActiveOrganization();
 
   return (
     <PageContainer
-      isLoading={!isLoaded}
+      isLoading={isPending}
       access={!!organization}
       accessFallback={
         <div className='flex min-h-[400px] items-center justify-center'>
@@ -34,20 +33,21 @@ export default function BillingPage() {
         <Alert>
           <Icons.info className='h-4 w-4' />
           <AlertDescription>
-            Plans and subscriptions are managed through Clerk Billing. Subscribe to a plan to unlock
-            features and higher limits.
+            Billing is not enabled yet. AI Financial Control is free during the private beta.
           </AlertDescription>
         </Alert>
 
-        {/* Clerk Pricing Table */}
         <Card>
           <CardHeader>
             <CardTitle>Available Plans</CardTitle>
             <CardDescription>Choose a plan that fits your organization's needs</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className='mx-auto max-w-4xl'>
-              <PricingTable for='organization' />
+            <div className='flex items-center justify-between rounded-lg border p-4'>
+              <div>
+                <div className='font-medium'>MVP Plan</div>
+                <div className='text-muted-foreground text-sm'>Free during private beta</div>
+              </div>
             </div>
           </CardContent>
         </Card>

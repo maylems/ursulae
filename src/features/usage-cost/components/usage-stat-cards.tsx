@@ -1,11 +1,46 @@
+'use client';
+
+import { useAuth } from '@/hooks/use-auth';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Icons } from '@/components/icons';
-import { usageStats } from '../constants/mock-data';
+import { usageStatsQueryOptions } from '../api/queries';
+import { formatRatio, formatSmallUsd, formatTokens } from '../utils/format';
 
 export function UsageStatCards() {
+  const { getToken } = useAuth();
+  const { data } = useSuspenseQuery(usageStatsQueryOptions(getToken));
+
+  const stats = [
+    {
+      key: 'avg-cost-request',
+      icon: 'calculator' as const,
+      value: formatSmallUsd(data.avgCostPerRequest),
+      label: 'Avg Cost / Request'
+    },
+    {
+      key: 'total-tokens',
+      icon: 'hash' as const,
+      value: formatTokens(data.totalTokens),
+      label: 'Total Tokens'
+    },
+    {
+      key: 'output-input-ratio',
+      icon: 'arrowsLeftRight' as const,
+      value: formatRatio(data.outputInputRatio),
+      label: 'Output/Input Ratio'
+    },
+    {
+      key: 'cost-per-1k',
+      icon: 'trendingUp' as const,
+      value: `$${data.costPer1kTokens.toFixed(4)}`,
+      label: 'Cost per 1K Tokens'
+    }
+  ];
+
   return (
     <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-      {usageStats.map((stat) => {
+      {stats.map((stat) => {
         const StatIcon = Icons[stat.icon];
         return (
           <Card key={stat.key} className='@container/card'>

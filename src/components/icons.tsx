@@ -9,7 +9,9 @@ import {
   IconBold,
   IconBox,
   IconBrandGithub,
+  IconBrandGoogle,
   IconBrandTwitter,
+  IconBrandWindows,
   IconBrightness,
   IconCalculator,
   IconCalendar,
@@ -37,6 +39,7 @@ import {
   IconDownload,
   IconEdit,
   IconExternalLink,
+  IconEye,
   IconEyeOff,
   IconFile,
   IconFileText,
@@ -57,6 +60,8 @@ import {
   IconLock,
   IconLogin,
   IconLogout,
+  IconKey,
+  IconMail,
   IconMessage,
   IconMinus,
   IconMoon,
@@ -145,6 +150,8 @@ export const Icons = {
 
   // Brand
   github: IconBrandGithub,
+  google: IconBrandGoogle,
+  microsoft: IconBrandWindows,
   twitter: IconBrandTwitter,
   logo: IconCommand,
 
@@ -198,10 +205,13 @@ export const Icons = {
   sparkles: IconSparkles,
   badgeCheck: IconRosetteDiscountCheck,
   lock: IconLock,
+  key: IconKey,
+  mail: IconMail,
 
   // Data / Charts
   trendingDown: IconTrendingDown,
   trendingUp: IconTrendingUp,
+  eye: IconEye,
   eyeOff: IconEyeOff,
   adjustments: IconAdjustmentsHorizontal,
   calculator: IconCalculator,

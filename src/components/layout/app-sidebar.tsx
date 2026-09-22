@@ -27,7 +27,7 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navGroups } from '@/config/nav-config';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useClerk, useOrganization, useUser } from '@clerk/nextjs';
+import { authClient } from '@/lib/auth-client';
 import { useFilteredNavGroups } from '@/hooks/use-nav';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -38,9 +38,13 @@ import { OrgSwitcher } from '../org-switcher';
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
-  const { user } = useUser();
-  const { organization } = useOrganization();
-  const { signOut } = useClerk();
+  // Session is cached client-side, so render it only after mount to match the server HTML.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  const { data: session } = authClient.useSession();
+  const user = mounted ? (session?.user ?? null) : null;
+  const { data: activeOrganization } = authClient.useActiveOrganization();
+  const organization = mounted ? activeOrganization : null;
   const router = useRouter();
   const filteredGroups = useFilteredNavGroups(navGroups);
 
@@ -161,7 +165,13 @@ export default function AppSidebar() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => signOut({ redirectUrl: '/auth/sign-in' })}>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      await authClient.signOut();
+                      router.push('/auth/sign-in');
+                      router.refresh();
+                    }}
+                  >
                     <Icons.logout aria-hidden className='mr-2 h-4 w-4' />
                     Sign out
                   </DropdownMenuItem>
