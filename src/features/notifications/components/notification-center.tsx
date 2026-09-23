@@ -6,24 +6,66 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { NotificationCard } from '@/components/ui/notification-card';
-import { useNotificationStore } from '../utils/store';
+import {
+  NotificationCard,
+  type NotificationAction,
+  type NotificationStatus
+} from '@/components/ui/notification-card';
 import { useRouter } from 'next/navigation';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/use-auth';
+import { notificationKeys, notificationsQueryOptions } from '../api/queries';
+import { markNotificationsRead } from '../api/service';
+import type { AppNotification } from '../api/types';
 
 const MAX_VISIBLE = 5;
 
-const actionRoutes: Record<string, string> = {
-  'view-budgets': '/dashboard/budgets',
-  'view-errors': '/dashboard/errors',
-  'view-settings': '/dashboard/settings',
-  'view-overview': '/dashboard/overview'
-};
+// Backend-driven action link: data.actionHref maps to a "View budgets"-style
+// redirect so the client stays decoupled from alert business rules.
+function toActions(notification: AppNotification): NotificationAction[] {
+  if (typeof notification.data?.actionHref !== 'string') return [];
+  return [
+    {
+      id: 'primary',
+      label:
+        typeof notification.data.actionLabel === 'string' ? notification.data.actionLabel : 'Open',
+      type: 'redirect',
+      style: 'primary'
+    }
+  ];
+}
+
+function toStatus(notification: AppNotification): NotificationStatus {
+  return notification.read ? 'read' : 'unread';
+}
 
 export function NotificationCenter() {
-  const { notifications, markAsRead, markAllAsRead, unreadCount } = useNotificationStore();
+  const { getToken } = useAuth();
   const router = useRouter();
-  const count = unreadCount();
+  const queryClient = useQueryClient();
+  // Intentionally not suspense-bound: the header spans the whole app, so we do
+  // not want a new optimistic mount to suspend the layout waiting on the query.
+  const { data: notifications = [] } = useQuery(notificationsQueryOptions(getToken));
+
+  const count = notifications.filter((notification) => !notification.read).length;
   const visibleNotifications = notifications.slice(0, MAX_VISIBLE);
+
+  const markRead = useMutation({
+    mutationFn: async (id: string) => markNotificationsRead(await getToken(), [id]),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+  });
+
+  const markAll = useMutation({
+    mutationFn: async () => markNotificationsRead(await getToken()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+  });
+
+  const redirect = (notification: AppNotification, actionId: string) => {
+    markRead.mutate(notification.id);
+    if (actionId === 'primary' && notification.data?.actionHref) {
+      router.push(notification.data.actionHref);
+    }
+  };
 
   return (
     <Popover>
@@ -53,7 +95,8 @@ export function NotificationCenter() {
                 variant='ghost'
                 size='sm'
                 className='text-muted-foreground h-auto px-2 py-1 text-xs'
-                onClick={markAllAsRead}
+                onClick={() => markAll.mutate()}
+                disabled={markAll.isPending}
               >
                 Mark all as read
               </Button>
@@ -75,15 +118,14 @@ export function NotificationCenter() {
                   id={notification.id}
                   title={notification.title}
                   body={notification.body}
-                  status={notification.status}
+                  status={toStatus(notification)}
                   createdAt={notification.createdAt}
-                  actions={notification.actions}
-                  onMarkAsRead={markAsRead}
-                  onAction={(notifId, actionId) => {
-                    const route = actionRoutes[actionId];
-                    if (route) {
-                      markAsRead(notifId);
-                      router.push(route);
+                  actions={toActions(notification)}
+                  onMarkAsRead={(id) => markRead.mutate(id)}
+                  onAction={(notifId, actionId, actionType) => {
+                    if (actionType === 'redirect') {
+                      const target = notifications.find((n) => n.id === notifId);
+                      if (target) redirect(target, actionId);
                     }
                   }}
                 />

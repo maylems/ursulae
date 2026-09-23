@@ -1,0 +1,52 @@
+# Production stack for the frontend (Next.js standalone, non-root).
+# The backend lives in its own repo and shares the `afc-net` Docker network.
+#
+# Usage (from this repo, after building the backend stack):
+#   docker network create afc-net            # once, shared with backend stack
+#   export NEXT_PUBLIC_API_URL=https://api.example.com
+#   docker compose -f compose.prod.yml up -d --build
+#
+# NEXT_PUBLIC_API_URL is required: it is baked into the client bundle and is
+# the URL the browser uses to reach the backend directly (auth + data).
+#
+# NOTE: explicit project name keeps prod isolated from the local dev stack
+# (compose.dev.yml in this repo).
+
+name: afc-prod-web
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.bun
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set}
+        NEXT_PUBLIC_SENTRY_DISABLED: 'true'
+    image: five-web:production
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      # Server-side (SSR) fetches reach the backend by its in-network name.
+      # Works only on the shared afc-net network.
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://api:4000}
+    ports:
+      - '3000:3000'
+    healthcheck:
+      test: ['CMD', 'bun', '-e', "const r = await fetch('http://127.0.0.1:3000/auth/sign-in'); if (!r.ok) process.exit(1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - afc-net
+
+networks:
+  afc-net:
+    name: afc-net
+    external: true

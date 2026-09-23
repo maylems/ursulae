@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, EyeOff, KeyRound, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 // Simple SVG components for brand icons as placeholders
 const GoogleIcon = (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
@@ -35,42 +35,52 @@ const MicrosoftIcon = (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
   />
 );
 
-interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
-  onEmailSubmit?: (data: { email: string; password?: string }) => void;
+interface AuthSignUpProps extends React.HTMLAttributes<HTMLDivElement> {
+  onEmailSubmit?: (data: { email: string }) => void;
   onSocialSignIn?: (provider: 'google' | 'microsoft') => void;
 }
 
-const AuthForm = React.forwardRef<HTMLDivElement, AuthFormProps>(
+const AuthSignUp = React.forwardRef<HTMLDivElement, AuthSignUpProps>(
   ({ className, onEmailSubmit, onSocialSignIn, ...props }, ref) => {
-    const [showPassword, setShowPassword] = React.useState(false);
-
     const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const formData = new FormData(event.currentTarget);
       const email = formData.get('email') as string;
-      const password = formData.get('password') as string;
-      onEmailSubmit?.({ email, password });
+      onEmailSubmit?.({ email });
     };
 
     return (
       <Card ref={ref} className={cn('w-full mx-auto max-w-md', className)} {...props}>
         <CardHeader className='text-left'>
-          <CardTitle className='text-2xl'> Sign in with email </CardTitle>
-          <CardDescription>Monitor and control your AI spending, all in one place.</CardDescription>
+          <CardTitle className='text-2xl'> Create your account </CardTitle>
+          <CardDescription>
+            Enter your email and we'll send you a verification link.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className='space-y-4'>
+          <div className='flex flex-col gap-4'>
             {/* Social Sign-in */}
-            <div className='space-y-2'>
-              <Label className='text-xs text-muted-foreground'> Sign in with</Label>
-              <div className='grid grid-cols-2 gap-2'>
-                <Button variant='outline' onClick={() => onSocialSignIn?.('google')}>
-                  <GoogleIcon className='size-4 fill-primary' />
-                </Button>
-                <Button variant='outline' onClick={() => onSocialSignIn?.('microsoft')}>
-                  <MicrosoftIcon className='size-4 fill-primary' />
-                </Button>
-              </div>
+            <div className='flex flex-col gap-2'>
+              <Button
+                variant='outline'
+                className='h-11 w-full'
+                onClick={() => onSocialSignIn?.('google')}
+              >
+                <span className='flex w-full items-center justify-center'>
+                  <GoogleIcon className='size-5 fill-primary' />
+                  <span className='ml-2 w-48 text-left'>Continue with Google</span>
+                </span>
+              </Button>
+              <Button
+                variant='outline'
+                className='h-11 w-full'
+                onClick={() => onSocialSignIn?.('microsoft')}
+              >
+                <span className='flex w-full items-center justify-center'>
+                  <MicrosoftIcon className='size-5 fill-primary' />
+                  <span className='ml-2 w-48 text-left'>Continue with Microsoft</span>
+                </span>
+              </Button>
             </div>
 
             {/* Divider */}
@@ -79,12 +89,12 @@ const AuthForm = React.forwardRef<HTMLDivElement, AuthFormProps>(
                 <span className='w-full border-t' />
               </div>
               <div className='relative flex justify-center text-xs uppercase'>
-                <span className='bg-background px-2 text-muted-foreground'> or </span>
+                <span className='bg-background px-2 text-muted-foreground'> OR </span>
               </div>
             </div>
 
             {/* Email Form */}
-            <form onSubmit={handleFormSubmit} className='space-y-4'>
+            <form onSubmit={handleFormSubmit} className='flex flex-col gap-4'>
               <div className='space-y-2'>
                 <Label htmlFor='email'> Email </Label>
                 <div className='relative'>
@@ -96,48 +106,19 @@ const AuthForm = React.forwardRef<HTMLDivElement, AuthFormProps>(
                     placeholder='jdoe.mobbin@gmail.com'
                     className='pl-9'
                     required
+                    autoComplete='email'
                   />
                 </div>
               </div>
-              <div className='space-y-2'>
-                <div className='flex items-center justify-between'>
-                  <Label htmlFor='password'> Password </Label>
-                  {/* oxlint-disable-next-line jsx-a11y/anchor-is-valid -- provided verbatim */}
-                  <a href='#' className='text-sm font-medium text-primary hover:underline'>
-                    {' '}
-                    Forgot password ?{' '}
-                  </a>
-                </div>
-                <div className='relative'>
-                  <KeyRound className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
-                  <Input
-                    id='password'
-                    name='password'
-                    type={showPassword ? 'text' : 'password'}
-                    className='pr-10 pl-9'
-                    required
-                  />
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='icon'
-                    className='absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 text-muted-foreground'
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
-                  </Button>
-                </div>
-              </div>
-              <Button type='submit' className='w-full'>
-                {' '}
-                Sign In{' '}
+              <Button type='submit' className='h-11 w-full'>
+                Send verification link
               </Button>
             </form>
           </div>
         </CardContent>
         <CardFooter className='flex-col items-start space-y-4'>
           <p className='w-full text-center text-xs text-muted-foreground'>
-            By logging in, you agree to our{' '}
+            By continuing, you agree to our{' '}
             {/* oxlint-disable-next-line jsx-a11y/anchor-is-valid -- provided verbatim */}
             <a href='#' className='underline hover:text-primary'>
               {' '}
@@ -154,6 +135,6 @@ const AuthForm = React.forwardRef<HTMLDivElement, AuthFormProps>(
     );
   }
 );
-AuthForm.displayName = 'AuthForm';
+AuthSignUp.displayName = 'AuthSignUp';
 
-export { AuthForm };
+export { AuthSignUp };

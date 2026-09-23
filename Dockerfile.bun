@@ -27,7 +27,11 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build-time env vars — override these with --build-arg or in compose.yml
+# Build-time env vars — override these with --build-arg or in compose.yml.
+# NEXT_PUBLIC_API_URL is baked into the client bundle (browser → backend),
+# so it MUST be the publicly reachable backend URL in production.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_SENTRY_DISABLED=true
 
 ENV BUILD_STANDALONE=true
@@ -61,5 +65,10 @@ COPY --from=builder --chown=bun:bun /app/.next/static ./.next/static
 USER bun
 
 EXPOSE 3000
+
+# /auth/sign-in is the public entry page and returns 200 without a session
+# (the landing / redirects, so it is not a reliable health target).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD ["bun", "-e", "const r = await fetch('http://127.0.0.1:3000/auth/sign-in'); if (!r.ok) process.exit(1)"]
 
 CMD ["bun", "server.js"]
