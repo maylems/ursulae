@@ -107,7 +107,10 @@ export function NewBudgetDialog() {
           <Button variant='outline' onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={() => mutation.mutate()} disabled={!limit || mutation.isPending}>
+          <Button
+            onClick={() => mutation.mutate()}
+            disabled={!limit || Number(limit) <= 0 || mutation.isPending}
+          >
             {mutation.isPending ? 'Creating...' : 'Create Budget'}
           </Button>
         </DialogFooter>

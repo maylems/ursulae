@@ -3,7 +3,6 @@
 import { useAuth } from '@/hooks/use-auth';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +16,7 @@ import { revokeApiKey } from '../api/service';
 import { providerLabelMap } from '../api/types';
 import { ProxyKeysTab } from '@/features/proxy/components/proxy-keys-tab';
 import { ConnectApiKeyDialog } from './connect-api-key-dialog';
+import { OrganizationTab } from './organization-tab';
 
 export function SettingsView() {
   const { getToken } = useAuth();
@@ -108,39 +108,7 @@ export function SettingsView() {
       </TabsContent>
 
       <TabsContent value='organization' className='mt-4'>
-        <Card>
-          <CardHeader>
-            <CardTitle>Organization</CardTitle>
-            <CardDescription>Manage your workspace name and members</CardDescription>
-          </CardHeader>
-          <CardContent className='flex flex-col gap-4'>
-            <div className='flex flex-col gap-1.5'>
-              <Label htmlFor='org-name'>Organization name</Label>
-              <Input id='org-name' defaultValue='Acme Inc.' className='max-w-sm' />
-            </div>
-            <div className='flex flex-col gap-2'>
-              <Label>Members</Label>
-              {[
-                { name: 'You', role: 'Admin' },
-                { name: 'Finance Lead', role: 'Finance' },
-                { name: 'Backend Engineer', role: 'Dev' }
-              ].map((member) => (
-                <div
-                  key={member.name}
-                  className='flex items-center justify-between rounded-lg border p-3'
-                >
-                  <div className='flex items-center gap-3'>
-                    <Avatar className='size-8'>
-                      <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className='text-sm font-medium'>{member.name}</span>
-                  </div>
-                  <Badge variant='outline'>{member.role}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <OrganizationTab />
       </TabsContent>
 
       <TabsContent value='notifications' className='mt-4'>

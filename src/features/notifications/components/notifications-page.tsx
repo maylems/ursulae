@@ -3,27 +3,65 @@
 import { Icons } from '@/components/icons';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
-import { NotificationCard } from '@/components/ui/notification-card';
+import {
+  NotificationCard,
+  type NotificationAction,
+  type NotificationStatus
+} from '@/components/ui/notification-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRouter } from 'next/navigation';
-import { useNotificationStore } from '../utils/store';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/use-auth';
+import { notificationKeys, notificationsQueryOptions } from '../api/queries';
+import { markNotificationsRead } from '../api/service';
+import type { AppNotification } from '../api/types';
 
-const actionRoutes: Record<string, string> = {
-  'view-budgets': '/dashboard/budgets',
-  'view-errors': '/dashboard/errors',
-  'view-settings': '/dashboard/settings',
-  'view-overview': '/dashboard/overview'
-};
+function toActions(notification: AppNotification): NotificationAction[] {
+  if (typeof notification.data?.actionHref !== 'string') return [];
+  return [
+    {
+      id: 'primary',
+      label:
+        typeof notification.data.actionLabel === 'string' ? notification.data.actionLabel : 'Open',
+      type: 'redirect',
+      style: 'primary'
+    }
+  ];
+}
+
+function toStatus(notification: AppNotification): NotificationStatus {
+  return notification.read ? 'read' : 'unread';
+}
 
 export default function NotificationsPage() {
-  const { notifications, markAsRead, markAllAsRead, unreadCount } = useNotificationStore();
+  const { getToken } = useAuth();
   const router = useRouter();
-  const count = unreadCount();
+  const queryClient = useQueryClient();
+  const { data: notifications } = useSuspenseQuery(notificationsQueryOptions(getToken));
 
-  const unreadNotifications = notifications.filter((n) => n.status === 'unread');
-  const readNotifications = notifications.filter((n) => n.status === 'read');
+  const count = notifications.filter((notification) => !notification.read).length;
 
-  const renderList = (items: typeof notifications) => {
+  const markRead = useMutation({
+    mutationFn: async (id: string) => markNotificationsRead(await getToken(), [id]),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+  });
+
+  const markAll = useMutation({
+    mutationFn: async () => markNotificationsRead(await getToken()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: notificationKeys.all })
+  });
+
+  const unreadNotifications = notifications.filter((notification) => !notification.read);
+  const readNotifications = notifications.filter((notification) => notification.read);
+
+  const redirect = (notification: AppNotification, actionId: string) => {
+    markRead.mutate(notification.id);
+    if (actionId === 'primary' && notification.data?.actionHref) {
+      router.push(notification.data.actionHref);
+    }
+  };
+
+  const renderList = (items: AppNotification[]) => {
     if (items.length === 0) {
       return (
         <div className='flex flex-col items-center justify-center py-16'>
@@ -41,15 +79,14 @@ export default function NotificationsPage() {
             id={notification.id}
             title={notification.title}
             body={notification.body}
-            status={notification.status}
+            status={toStatus(notification)}
             createdAt={notification.createdAt}
-            actions={notification.actions}
-            onMarkAsRead={markAsRead}
-            onAction={(notifId, actionId) => {
-              const route = actionRoutes[actionId];
-              if (route) {
-                markAsRead(notifId);
-                router.push(route);
+            actions={toActions(notification)}
+            onMarkAsRead={(id) => markRead.mutate(id)}
+            onAction={(notifId, actionId, actionType) => {
+              if (actionType === 'redirect') {
+                const target = notifications.find((n) => n.id === notifId);
+                if (target) redirect(target, actionId);
               }
             }}
           />
@@ -64,7 +101,12 @@ export default function NotificationsPage() {
       pageDescription='View and manage all your notifications.'
       pageHeaderAction={
         count > 0 ? (
-          <Button variant='outline' size='sm' onClick={markAllAsRead}>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => markAll.mutate()}
+            disabled={markAll.isPending}
+          >
             Mark all as read
           </Button>
         ) : undefined
