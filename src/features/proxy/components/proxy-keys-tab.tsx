@@ -9,31 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Icons } from '@/components/icons';
 import { proxyKeyKeys, proxyKeysQueryOptions } from '../api/queries';
 import { revokeProxyKey } from '../api/service';
+import { anthropicProxySnippet, openaiProxySnippet } from '../lib/snippets';
 import { CreateProxyKeyDialog } from './create-proxy-key-dialog';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-
-const openaiSnippet = `import OpenAI from 'openai';
-
-const client = new OpenAI({
-  // your own OpenAI key, as usual
-  baseURL: '${API_URL}/proxy/openai/v1',
-  defaultHeaders: {
-    'x-afc-key': 'afc_...',           // your proxy key
-    'x-afc-feature': 'support-agent'  // optional tag
-  }
-});`;
-
-const anthropicSnippet = `import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({
-  // your own Anthropic key, as usual
-  baseURL: '${API_URL}/proxy/anthropic',
-  defaultHeaders: {
-    'x-afc-key': 'afc_...',           // your proxy key
-    'x-afc-feature': 'support-agent'  // optional tag
-  }
-});`;
 
 export function ProxyKeysTab() {
   const { getToken } = useAuth();
@@ -123,12 +100,14 @@ export function ProxyKeysTab() {
         <CardContent className='flex flex-col gap-4'>
           <div>
             <p className='mb-1.5 text-sm font-medium'>OpenAI</p>
-            <pre className='bg-muted overflow-x-auto rounded-lg p-3 text-xs'>{openaiSnippet}</pre>
+            <pre className='bg-muted overflow-x-auto rounded-lg p-3 text-xs'>
+              {openaiProxySnippet}
+            </pre>
           </div>
           <div>
             <p className='mb-1.5 text-sm font-medium'>Anthropic</p>
             <pre className='bg-muted overflow-x-auto rounded-lg p-3 text-xs'>
-              {anthropicSnippet}
+              {anthropicProxySnippet}
             </pre>
           </div>
         </CardContent>
