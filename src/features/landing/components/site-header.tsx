@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { BrandLogo } from '@/features/auth/components/brand-logo';
 import { Button } from '@/components/ui/button';
+import { ThemeModeToggle } from '@/components/themes/theme-mode-toggle';
 
 const navLinks = [
   { label: 'Features', href: '#features' },
@@ -29,6 +30,7 @@ export function SiteHeader() {
         </nav>
 
         <div className='flex shrink-0 items-center gap-4'>
+          <ThemeModeToggle />
           <Link
             href='/auth/sign-in'
             className='text-sm text-muted-foreground transition-colors hover:text-foreground'

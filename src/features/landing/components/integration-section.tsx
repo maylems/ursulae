@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import { anthropicProxySnippet, openaiProxySnippet } from '@/features/proxy/lib/snippets';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CopyButton } from './copy-button';
 
 const points = [
   'Keep your existing SDK and your own OpenAI or Anthropic key',
@@ -50,12 +51,18 @@ export function IntegrationSection() {
                   <span className='size-2.5 rounded-full bg-muted-foreground/20' />
                 </div>
               </div>
-              <TabsContent value='openai'>
+              <TabsContent value='openai' className='relative'>
+                <div className='absolute top-2 right-2'>
+                  <CopyButton text={openaiProxySnippet} />
+                </div>
                 <pre className='overflow-x-auto p-4 text-xs leading-relaxed'>
                   {openaiProxySnippet}
                 </pre>
               </TabsContent>
-              <TabsContent value='anthropic'>
+              <TabsContent value='anthropic' className='relative'>
+                <div className='absolute top-2 right-2'>
+                  <CopyButton text={anthropicProxySnippet} />
+                </div>
                 <pre className='overflow-x-auto p-4 text-xs leading-relaxed'>
                   {anthropicProxySnippet}
                 </pre>
