@@ -4,6 +4,8 @@
  * change where the API is unavailable or no origin is given. The reveal
  * keyframes live in `src/styles/globals.css`.
  */
+let activeTransition: ViewTransition | null = null;
+
 export function startThemeTransition(
   apply: () => void,
   origin?: { clientX: number; clientY: number }
@@ -20,5 +22,19 @@ export function startThemeTransition(
     root.style.setProperty('--y', `${origin.clientY}px`);
   }
 
-  document.startViewTransition(apply);
+  // A transition still in flight from a rapid second click throws
+  // "InvalidStateError" if left for the browser to resolve on its own, so
+  // skip it explicitly first.
+  activeTransition?.skipTransition();
+
+  const transition = document.startViewTransition(apply);
+  activeTransition = transition;
+  // A skipped/aborted transition rejects `finished`, which is the expected
+  // outcome above, not a bug, so it shouldn't surface as an unhandled
+  // rejection.
+  transition.finished
+    .catch(() => {})
+    .finally(() => {
+      if (activeTransition === transition) activeTransition = null;
+    });
 }

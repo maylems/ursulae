@@ -54,6 +54,19 @@ html[data-theme].dark {
   }
 }
 
+/* Shiki dual-theme code blocks: light/dark variables are emitted per-token,
+   this switches which one wins based on the app's own .dark class. */
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+  background-color: transparent !important;
+}
+
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark);
+}
+
 /* View Transition Wave Effect */
 ::view-transition-old(root),
 ::view-transition-new(root) {

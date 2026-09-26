@@ -236,6 +236,7 @@ Deploy to Vercel out of the box, or use the included Bun Dockerfile (`Dockerfile
 
 Deploy to Vercel out of the box, or use the included Bun Dockerfile (`Dockerfile.bun`), using Next.js standalone output mode. Full guide: [docs/deployment.md](./docs/deployment.md).
 
+
 ### Support
 
 If this template saved you some time, a star is appreciated. You can also [buy me a coffee](https://buymeacoffee.com/kir4n) if you'd like.
@@ -258,4 +259,4 @@ free react admin dashboard, nextjs 16 dashboard starter, working crud dashboard
 
 -->
 
-# five
+# ursulae

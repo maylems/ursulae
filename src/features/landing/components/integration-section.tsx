@@ -2,6 +2,7 @@ import { Check } from 'lucide-react';
 import { anthropicProxySnippet, openaiProxySnippet } from '@/features/proxy/lib/snippets';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CopyButton } from './copy-button';
+import { highlightSnippet } from '../lib/highlight';
 
 const points = [
   'Keep your existing SDK and your own OpenAI or Anthropic key',
@@ -9,7 +10,12 @@ const points = [
   'Tag requests with an optional feature label for attribution'
 ];
 
-export function IntegrationSection() {
+export async function IntegrationSection() {
+  const [openaiHtml, anthropicHtml] = await Promise.all([
+    highlightSnippet(openaiProxySnippet),
+    highlightSnippet(anthropicProxySnippet)
+  ]);
+
   return (
     <section id='integration' className='py-20 sm:py-28'>
       <div className='mx-auto max-w-5xl px-6'>
@@ -55,17 +61,21 @@ export function IntegrationSection() {
                 <div className='absolute top-2 right-2'>
                   <CopyButton text={openaiProxySnippet} />
                 </div>
-                <pre className='overflow-x-auto p-4 text-xs leading-relaxed'>
-                  {openaiProxySnippet}
-                </pre>
+                <div
+                  className='[&_pre]:overflow-x-auto [&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:text-xs [&_pre]:leading-relaxed'
+                  // oxlint-disable-next-line react/no-danger -- server-rendered by shiki, not user input
+                  dangerouslySetInnerHTML={{ __html: openaiHtml }}
+                />
               </TabsContent>
               <TabsContent value='anthropic' className='relative'>
                 <div className='absolute top-2 right-2'>
                   <CopyButton text={anthropicProxySnippet} />
                 </div>
-                <pre className='overflow-x-auto p-4 text-xs leading-relaxed'>
-                  {anthropicProxySnippet}
-                </pre>
+                <div
+                  className='[&_pre]:overflow-x-auto [&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:text-xs [&_pre]:leading-relaxed'
+                  // oxlint-disable-next-line react/no-danger -- server-rendered by shiki, not user input
+                  dangerouslySetInnerHTML={{ __html: anthropicHtml }}
+                />
               </TabsContent>
             </Tabs>
           </div>
