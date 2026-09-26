@@ -34,8 +34,8 @@ export function HeroSection() {
 
         <p className='mt-6 max-w-2xl animate-in fade-in slide-in-from-bottom-3 text-base text-pretty text-muted-foreground delay-100 duration-700 sm:text-lg'>
           Ursulae meters every OpenAI and Anthropic request as it happens, attributes the cost to
-          the team or feature behind it, and enforces the budget before it&apos;s exceeded, not
-          after the invoice arrives.
+          the team or feature behind it, and enforces spending limits before they turn into an
+          unexpected bill.
         </p>
 
         <div className='mt-10 flex animate-in fade-in slide-in-from-bottom-3 flex-col items-center gap-3 delay-150 duration-700 sm:flex-row'>

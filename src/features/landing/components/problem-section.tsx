@@ -4,21 +4,21 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/c
 const problems = [
   {
     icon: EyeOff,
-    title: 'No visibility until the invoice',
+    title: 'No real-time control at the application layer',
     description:
-      'API calls happen inside your code, not in a dashboard. The first real signal that something changed is the bill, weeks after the spend already happened.'
+      "API requests happen inside your application. Provider dashboards can show you what was used, but they don't sit in the request path of your application. Ursulae sees each request as it happens and can enforce your spending limits before the request reaches the provider."
   },
   {
     icon: Users,
-    title: 'No attribution',
+    title: 'Limited attribution across your application',
     description:
-      'A spike is easy to see and impossible to explain. Which feature caused it? Which team shipped it? Which customer triggered it?'
+      'A spending spike tells you that something changed. The harder question is what caused it: which feature, team, or application component generated the spend? Ursulae lets your application tag requests with feature-level context, so costs can be attributed to the parts of your product that generated them.'
   },
   {
     icon: Ban,
-    title: 'No way to stop it',
+    title: 'A bill tells you what happened. A control layer can stop what happens next.',
     description:
-      "By the time a spike shows up on the invoice, the money's spent. There's no lever to pull mid-month, only a number to negotiate after the fact."
+      'Once an API request has been processed, its cost has already been incurred. Ursulae adds a budget control layer directly in the request path, allowing you to define spending limits and block requests when those limits are reached.'
   }
 ];
 
@@ -31,7 +31,7 @@ export function ProblemSection() {
             The problem
           </p>
           <h2 className='mt-3 text-3xl font-semibold tracking-tight text-balance sm:text-4xl'>
-            You can&apos;t control what you can&apos;t see.
+            Seeing your AI spend isn&apos;t the same as controlling it.
           </h2>
           <p className='mt-4 text-base text-pretty text-muted-foreground'>
             OpenAI and Anthropic bill you at the end of the month for whatever your product called
@@ -55,8 +55,17 @@ export function ProblemSection() {
         </div>
 
         <p className='mt-14 text-center text-base font-medium text-balance'>
-          Ursulae closes that gap, one request at a time.
+          Ursulae closes the gap between AI usage and financial control, one request at a time.
         </p>
+
+        <div className='mx-auto mt-6 flex max-w-md flex-col items-center gap-1 text-center'>
+          <p className='text-sm text-muted-foreground'>
+            Provider dashboards show you what you spent.
+          </p>
+          <p className='text-sm font-medium text-foreground'>
+            Ursulae helps you control what happens next.
+          </p>
+        </div>
       </div>
     </section>
   );
