@@ -28,6 +28,20 @@ import { connectApiKey } from '../api/service';
 import { apiKeyKeys } from '../api/queries';
 import type { ApiKeyProvider } from '../api/types';
 
+// Usage/billing import needs the org-level Usage API, which only an Admin key
+// can call — a regular project/workspace key gets a 401/403 here.
+const ADMIN_KEY_HELP: Partial<Record<ApiKeyProvider, { placeholder: string; hint: string }>> = {
+  openai: {
+    placeholder: 'sk-admin-...',
+    hint: "Must be an OpenAI Admin key (starts with sk-admin-), from Organization Settings → Admin keys. A regular project API key (sk-proj-...) won't work here."
+  },
+  anthropic: {
+    placeholder: 'sk-ant-admin01-...',
+    hint: "Must be an Anthropic Admin key (starts with sk-ant-admin01-), from your workspace's Admin API keys page. A regular API key won't work here."
+  }
+};
+const DEFAULT_KEY_HELP = { placeholder: 'sk-...', hint: '' };
+
 export function ConnectApiKeyDialog() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
@@ -57,14 +71,14 @@ export function ConnectApiKeyDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
         <Icons.add className='size-4' />
-        Connect API Key
+        Connect Admin API Key
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Connect API Key</DialogTitle>
+          <DialogTitle>Connect Admin API Key</DialogTitle>
           <DialogDescription>
-            Read-only import — we only fetch usage and billing data, never make requests on your
-            behalf.
+            Read-only import: we only fetch usage and billing data, never make requests on your
+            behalf. This requires an organization Admin key, not a regular API key.
           </DialogDescription>
         </DialogHeader>
         <div className='flex flex-col gap-4'>
@@ -90,14 +104,17 @@ export function ConnectApiKeyDialog() {
             />
           </div>
           <div className='flex flex-col gap-1.5'>
-            <Label htmlFor='key-value'>API Key</Label>
+            <Label htmlFor='key-value'>Admin API Key</Label>
             <Input
               id='key-value'
               type='password'
-              placeholder='sk-...'
+              placeholder={(ADMIN_KEY_HELP[provider] ?? DEFAULT_KEY_HELP).placeholder}
               value={key}
               onChange={(e) => setKey(e.target.value)}
             />
+            <p className='text-muted-foreground text-xs text-pretty'>
+              {(ADMIN_KEY_HELP[provider] ?? DEFAULT_KEY_HELP).hint}
+            </p>
           </div>
         </div>
         <DialogFooter>

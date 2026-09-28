@@ -48,9 +48,9 @@ export function SettingsView() {
         <Card>
           <CardHeader className='flex flex-row items-start justify-between'>
             <div>
-              <CardTitle>Connected API Keys</CardTitle>
+              <CardTitle>Connected Admin API Keys</CardTitle>
               <CardDescription>
-                Read-only keys used to import usage and billing history
+                Read-only Admin keys used to import usage and billing history, not a regular API key
               </CardDescription>
             </div>
             <ConnectApiKeyDialog />

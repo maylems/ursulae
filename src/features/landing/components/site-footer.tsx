@@ -6,6 +6,7 @@ const columns = [
     links: [
       { label: 'Features', href: '#features' },
       { label: 'Integration', href: '#integration' },
+      { label: 'Security & Privacy', href: '#security' },
       { label: 'How it works', href: '#how-it-works' }
     ]
   },
@@ -20,7 +21,7 @@ const columns = [
 
 export function SiteFooter() {
   return (
-    <footer className='overflow-hidden border-t border-border/60 bg-background'>
+    <footer className='overflow-hidden bg-background'>
       <div className='mx-auto max-w-6xl px-6 pt-16 sm:pt-20'>
         <div className='grid grid-cols-2 gap-10 sm:grid-cols-4'>
           <div className='col-span-2'>
@@ -49,18 +50,10 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className='mt-16 flex flex-col items-center gap-2 border-t border-border/60 py-6 text-xs text-muted-foreground sm:flex-row sm:justify-between'>
+        <div className='mt-16 flex flex-col items-center gap-2 py-6 text-xs text-muted-foreground sm:flex-row sm:justify-between'>
           <span>&copy; {new Date().getFullYear()} Ursulae. All rights reserved.</span>
           <span>Private beta</span>
         </div>
-      </div>
-
-      <div
-        aria-hidden
-        className='pointer-events-none -mb-8 text-center leading-none font-bold tracking-tighter text-foreground/5 select-none sm:-mb-14'
-        style={{ fontSize: 'clamp(4.5rem, 18vw, 11rem)' }}
-      >
-        Ursulae
       </div>
     </footer>
   );
